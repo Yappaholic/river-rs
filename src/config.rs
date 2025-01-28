@@ -2,10 +2,7 @@ use crate::colors::Colors;
 use std::process::Command;
 
 /// Struct for holding pairs of keymap and associated command
-/// # Example
-/// ```
-/// let keymap = Keybind {keymap: String::from("Q"), command: String::from("spawn foo")};
-/// ```
+///
 /// You should not write Keybinds by yourself, that's why `set_keybind` and `set_keybinds` are for
 #[derive(Clone, Debug)]
 pub struct Keybind {
@@ -14,6 +11,7 @@ pub struct Keybind {
 }
 
 /// The heart of the River configuration, holding values for default and mouse-related keybinds, colors and modifier
+///
 /// Each value can only be changed with methods, because it is Rust, baby!
 /// For more info, check associated structs and implemented methods.
 #[derive(Debug)]
@@ -63,6 +61,8 @@ impl Config {
     ///
     /// # Example
     /// ```
+    /// use river_rs::config::Config;
+    ///
     /// let mut config = Config::new();
     /// let key = String::from("Q");
     /// let command = String::from("spanw foo");
@@ -86,6 +86,8 @@ impl Config {
     ///
     /// # Examples
     /// ```
+    /// use river_rs::config::Config;
+    ///
     /// let mut config = Config::new();
     /// let keybinds = vec![
     ///   ["Q", "spawn foo"],
