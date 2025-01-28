@@ -1,0 +1,12 @@
+[package]
+name = "river-rs"
+description = "Utilities for configuring River Window Manager."
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+
+[profile.release]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
