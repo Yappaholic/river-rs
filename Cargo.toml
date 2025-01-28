@@ -2,8 +2,11 @@
 name = "river-rs"
 description = "Utilities for configuring River Window Manager."
 version = "0.1.0"
+authors = ["Saveliy Boyarchuk"]
+repository = "https://github.com/Yappaholic/river-rs"
 license = "MIT"
-edition = "2024"
+edition = "2021"
+readme = "README.md"
 
 [profile.release]
 opt-level = 3

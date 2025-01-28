@@ -4,13 +4,14 @@ pub mod colors;
 pub mod config;
 
 /// Easy wrapper around Rust's `Command::new` utility
-fn spawn(command: &str) {
+pub fn spawn(command: &str) {
     Command::new("riverctl")
         .args(["spawn", command])
         .spawn()
         .expect("Can't launch program");
 }
 
+/// This is just an example of using the library
 fn main() {
     let mut config: Config = Config::new();
     let keybinds = vec![
