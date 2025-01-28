@@ -1,8 +1,12 @@
-/// Colors struct is used for describing River basic color palette
-/// Often colors are overriden by tiling generators (like wideriver),
-/// or by background image apps (by overlapping WM's background),
-/// so you can use defaults, specified in the `init` file, or go for
-/// your own settings
+///! # Colors
+///!
+///! Colors struct is used for describing River basic color palette
+///!
+///! Often colors are overriden by tiling generators (like wideriver),
+///! or by background image apps (by overlapping WM's background),
+///! so you can use defaults, specified in the `init` file, or go for
+///! your own settings
+
 #[derive(Debug)]
 pub struct Colors {
     background_color: i32,

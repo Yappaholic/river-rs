@@ -1,5 +1,10 @@
 use crate::colors::Colors;
+use std::io::Result;
 use std::process::Command;
+
+///! # Config
+///!
+///! The heart of river-rs library
 
 /// Struct for holding pairs of keymap and associated command
 ///
@@ -17,16 +22,17 @@ pub struct Keybind {
 #[derive(Debug)]
 pub struct Config {
     keybinds: Vec<Keybind>,
-    mouse: Vec<Keybind>,
     colors: Colors,
     modifier: String,
 }
 
 impl Config {
+    /// Creates empty config with no keybinds.
+    ///
+    /// The default modifier is `Super`. To check the default colors
     pub fn new() -> Config {
         Config {
             keybinds: vec![],
-            mouse: vec![],
             colors: Colors::default(),
             modifier: String::from("Super"),
         }
@@ -36,11 +42,11 @@ impl Config {
     ///
     /// The typematic delay indicates the amount of time (typically in milliseconds) a key needs to be pressed and held in order for the repeating process to begin.
     /// After the repeating process has been triggered, the character will be repeated with a certain frequency (usually given in Hz) specified by the typematic rate.
-    /// (Taken from the Arch Wiki)
+    ///`(Taken from the Arch Wiki)`
     pub fn set_repeat(&self, repeat_rate: i32, repeat_delay: i32) -> &Self {
         Command::new("riverctl")
             .args([
-                "-set-repeat",
+                "set-repeat",
                 repeat_rate.to_string().as_str(),
                 repeat_delay.to_string().as_str(),
             ])
@@ -50,8 +56,9 @@ impl Config {
         return self;
     }
 
-    /// Changes the River Modifier key, useful when chaining `set_keybinds`
-    /// with different modifiers
+    /// Changes the River Modifier key.
+    ///
+    /// Useful when chaining `set_keybinds` with different modifiers.
     pub fn change_super(&mut self, key: &str) -> &mut Self {
         self.modifier = String::from(key);
         return self;
@@ -106,6 +113,62 @@ impl Config {
         return self;
     }
 
+    /// Every keybind is optional, so you can just provide it with `None` keyword
+    ///
+    /// # Example
+    /// ```
+    /// use river_rs::config::Config;
+    ///
+    /// let mut config = Config::new();
+    /// config.set_mouse_keybinds(Some("move-view"), Some("resize-view"), None);
+    /// ```
+    ///
+    pub fn set_mouse_keybinds(
+        &mut self,
+        left: Option<&str>,
+        right: Option<&str>,
+        middle: Option<&str>,
+    ) -> &mut Self {
+        if let Some(left_command) = left {
+            self.apply_mouse_keybind("left", left_command);
+        }
+        if let Some(right_command) = right {
+            self.apply_mouse_keybind("right", right_command);
+        }
+        if let Some(middle_command) = middle {
+            self.apply_mouse_keybind("middle", middle_command);
+        }
+        return self;
+    }
+
+    fn apply_mouse_keybind(&self, position: &str, command: &str) {
+        let pos: &str;
+        match position {
+            "left" => {
+                pos = "BTN_LEFT";
+            }
+            "right" => {
+                pos = "BTN_RIGHT";
+            }
+            "middle" => {
+                pos = "BTN_MIDDLE";
+            }
+            _ => {
+                pos = "BTN_LEFT";
+            }
+        }
+        Command::new("riverctl")
+            .args([
+                "map-pointer",
+                "normal",
+                self.modifier.as_str(),
+                pos,
+                command,
+            ])
+            .spawn()
+            .expect("Can't set the mouse keybind");
+    }
+
     /// Convenient function to simplify writing config from the end users perspective
     fn serialize_to_owned(&self, arr: &Vec<[&str; 2]>) -> Vec<Vec<String>> {
         let mut new_arr: Vec<Vec<String>> = Vec::new();
@@ -115,5 +178,31 @@ impl Config {
         }
 
         return new_arr;
+    }
+
+    fn apply_keybind(&self, keybind: Keybind) {
+        let command: Vec<&str> = keybind.command.split_whitespace().collect();
+        Command::new("riverctl")
+            .args([
+                "map",
+                "normal",
+                self.modifier.as_str(),
+                keybind.keymap.as_str(),
+                command[0],
+                command[1],
+            ])
+            .spawn()
+            .expect("Can't set the keybind");
+    }
+
+    /// Finish setting up the config.
+    ///
+    /// Needs to be run at the end of setup via chaining.
+    pub fn apply(&self) -> Result<()> {
+        for keybind in &self.keybinds {
+            let keybind = keybind.clone();
+            self.apply_keybind(keybind);
+        }
+        return Ok(());
     }
 }
