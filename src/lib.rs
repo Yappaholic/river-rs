@@ -40,6 +40,7 @@ mod test {
             .set_mouse_keybinds(Some("move-view"), Some("resize-view"), None)
             .change_super("Super+Shift")
             .set_keybinds(shift_keybinds)
+            .set_tags("Super", "Super+Shift")
             .apply()
             .unwrap();
     }

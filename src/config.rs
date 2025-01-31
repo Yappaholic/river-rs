@@ -118,7 +118,7 @@ impl Config {
     }
 
     /// Sets tags from 1 to 9 based on passed modifiers
-    pub fn set_tags(&self, modifier: &str, switch_modifier: &str) {
+    pub fn set_tags(&mut self, modifier: &str, switch_modifier: &str) -> &mut Self {
         let tags: Vec<u32> = (0..10).collect();
         let tag_ids: Vec<u32> = tags.iter().map(|x| 2_u32.pow(*x)).collect();
         let mut keybinds: Vec<Keybind> = Vec::new();
@@ -136,6 +136,7 @@ impl Config {
             });
             idx += 1;
         }
+        return self;
     }
 
     fn apply_colors(&mut self) -> &mut Self {
