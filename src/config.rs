@@ -2,10 +2,11 @@
 //!
 //! The heart of river-rs library
 use crate::colors::Colors;
+use crate::layout::Layout;
 use std::io::Result;
 use std::process::Command;
 
-/// Struct for holding pairs of keymap and associated command.
+/// Struct for info of modifier, keymap and associated command.
 ///
 /// You should not write Keybinds by yourself, that's why `set_keybind` and `set_keybinds` are for.
 #[derive(Clone, Debug)]
@@ -23,6 +24,7 @@ pub struct Keybind {
 pub struct Config {
     keybinds: Vec<Keybind>,
     colors: Colors,
+    layout: Layout,
     modifier: String,
 }
 
@@ -35,6 +37,7 @@ impl Config {
         Config {
             keybinds: vec![],
             colors: Colors::default(),
+            layout: Layout::default(),
             modifier: String::from("Super"),
         }
     }
@@ -112,6 +115,27 @@ impl Config {
 
         self.keybinds.push(keybind);
         return self;
+    }
+
+    /// Sets tags from 1 to 9 based on passed modifiers
+    pub fn set_tags(&self, modifier: &str, switch_modifier: &str) {
+        let tags: Vec<u32> = (0..10).collect();
+        let tag_ids: Vec<u32> = tags.iter().map(|x| 2_u32.pow(*x)).collect();
+        let mut keybinds: Vec<Keybind> = Vec::new();
+        let mut idx = 0;
+        while idx < tags.len() {
+            keybinds.push(Keybind {
+                modifier: String::from(modifier),
+                keymap: tags[idx].to_string(),
+                command: String::from("set-focused-tags ") + tag_ids[idx].to_string().as_str(),
+            });
+            keybinds.push(Keybind {
+                modifier: String::from(switch_modifier),
+                keymap: tags[idx].to_string(),
+                command: String::from("set-view-tags ") + tag_ids[idx].to_string().as_str(),
+            });
+            idx += 1;
+        }
     }
 
     fn apply_colors(&mut self) -> &mut Self {
@@ -243,23 +267,40 @@ impl Config {
                         command[0],
                     ])
                     .spawn()
-                    .expect("Can't set the keybind");
+                    .expect("Can't set the keybind\n");
             }
             2 => {
+                let args = [
+                    "map",
+                    "normal",
+                    keybind.modifier.as_str(),
+                    keybind.keymap.as_str(),
+                    command[0],
+                    command[1],
+                ];
                 Command::new("riverctl")
-                    .args([
-                        "map",
-                        "normal",
-                        keybind.modifier.as_str(),
-                        keybind.keymap.as_str(),
-                        command[0],
-                        command[1],
-                    ])
+                    .args(args)
                     .spawn()
-                    .expect("Can't set the keybind");
+                    .expect("Can't set the keybind\n");
+            }
+            0 => {
+                panic!("There are no commands provided for the riverctl!\n")
             }
             _ => {
-                panic!("There are no commands provided for the riverctl!\n")
+                let args: Vec<&str> = [
+                    "map",
+                    "normal",
+                    keybind.modifier.as_str(),
+                    keybind.keymap.as_str(),
+                ]
+                .iter()
+                .chain(&command)
+                .map(|&x| x)
+                .collect();
+                Command::new("riverctl")
+                    .args(args)
+                    .spawn()
+                    .expect("Can't set the keybind\n");
             }
         }
     }
@@ -273,6 +314,7 @@ impl Config {
             self.apply_keybind(keybind);
         }
         self.apply_colors();
+        self.layout.spawn();
         return Ok(());
     }
 }

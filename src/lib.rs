@@ -8,6 +8,7 @@
 use std::process::Command;
 pub mod colors;
 pub mod config;
+pub mod layout;
 
 /// Easy wrapper around Rust's `Command::new` utility
 pub fn spawn(command: &str) {
