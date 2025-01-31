@@ -10,6 +10,7 @@ use std::process::Command;
 /// You should not write Keybinds by yourself, that's why `set_keybind` and `set_keybinds` are for.
 #[derive(Clone, Debug)]
 pub struct Keybind {
+    modifier: String,
     keymap: String,
     command: String,
 }
@@ -104,6 +105,7 @@ impl Config {
         let command = command.clone();
 
         let keybind = Keybind {
+            modifier: self.modifier.clone(),
             keymap: keys,
             command,
         };
@@ -236,7 +238,7 @@ impl Config {
                     .args([
                         "map",
                         "normal",
-                        self.modifier.as_str(),
+                        keybind.modifier.as_str(),
                         keybind.keymap.as_str(),
                         command[0],
                     ])
@@ -248,7 +250,7 @@ impl Config {
                     .args([
                         "map",
                         "normal",
-                        self.modifier.as_str(),
+                        keybind.modifier.as_str(),
                         keybind.keymap.as_str(),
                         command[0],
                         command[1],
