@@ -1,3 +1,10 @@
+//! # River-rs
+//!
+//! ## WIP
+//!
+//! This is a simple library, providing Rust bindings to create and use
+//! RiverWM config, instead of writing everything in the shell file.
+//!
 use std::process::Command;
 pub mod colors;
 pub mod config;
@@ -31,7 +38,8 @@ mod test {
             .set_keybinds(keybinds)
             .set_mouse_keybinds(Some("move-view"), Some("resize-view"), None)
             .change_super("Super+Shift")
-            .set_keybinds(shift_keybinds);
-        print!("{:?}", config);
+            .set_keybinds(shift_keybinds)
+            .apply()
+            .unwrap();
     }
 }

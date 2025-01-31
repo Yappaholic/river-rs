@@ -1,14 +1,13 @@
+//! # Config
+//!
+//! The heart of river-rs library
 use crate::colors::Colors;
 use std::io::Result;
 use std::process::Command;
 
-///! # Config
-///!
-///! The heart of river-rs library
-
-/// Struct for holding pairs of keymap and associated command
+/// Struct for holding pairs of keymap and associated command.
 ///
-/// You should not write Keybinds by yourself, that's why `set_keybind` and `set_keybinds` are for
+/// You should not write Keybinds by yourself, that's why `set_keybind` and `set_keybinds` are for.
 #[derive(Clone, Debug)]
 pub struct Keybind {
     keymap: String,
@@ -29,7 +28,8 @@ pub struct Config {
 impl Config {
     /// Creates empty config with no keybinds.
     ///
-    /// The default modifier is `Super`. To check the default colors
+    /// The default modifier is `Super`.
+    /// To check the default colors visit Colors struct.
     pub fn new() -> Config {
         Config {
             keybinds: vec![],
@@ -43,7 +43,7 @@ impl Config {
     /// The typematic delay indicates the amount of time (typically in milliseconds) a key needs to be pressed and held in order for the repeating process to begin.
     /// After the repeating process has been triggered, the character will be repeated with a certain frequency (usually given in Hz) specified by the typematic rate.
     ///`(Taken from the Arch Wiki)`
-    pub fn set_repeat(&self, repeat_rate: i32, repeat_delay: i32) -> &Self {
+    pub fn set_repeat(&self, repeat_rate: u32, repeat_delay: u32) -> &Self {
         Command::new("riverctl")
             .args([
                 "set-repeat",
@@ -59,6 +59,30 @@ impl Config {
     /// Changes the River Modifier key.
     ///
     /// Useful when chaining `set_keybinds` with different modifiers.
+    ///
+    /// # Example
+    /// ```
+    /// use river_rs::config::Config;
+    ///
+    /// let mut config = Config::new();
+    ///
+    /// let keybinds = vec![
+    ///     ["C", "close"],
+    ///     ["J", "focus-view next"],
+    ///     ["K", "focus-view previous"],
+    /// ];
+    /// let shift_keybinds = vec![
+    ///     ["E", "exit"],
+    ///     ["J", "swap next"],
+    ///     ["K", "swap previous"],
+    /// ];
+    /// config
+    ///     .set_keybinds(keybinds)
+    ///     .change_super("Super+Shift")
+    ///     .set_keybinds(shift_keybinds)
+    ///     .apply()
+    ///     .unwrap();
+    /// ```
     pub fn change_super(&mut self, key: &str) -> &mut Self {
         self.modifier = String::from(key);
         return self;
@@ -88,7 +112,31 @@ impl Config {
         return self;
     }
 
+    fn apply_colors(&mut self) -> &mut Self {
+        let background_color = format!("{:#X}", self.colors.background_color);
+        let border_color_focused = format!("{:#X}", self.colors.border_color_focused);
+        let border_color_unfocused = format!("{:#X}", self.colors.border_color_unfocused);
+
+        let commands = vec![
+            ["background-color", background_color.as_str()],
+            ["border-color-focused", border_color_focused.as_str()],
+            ["border-color-unfocused", border_color_unfocused.as_str()],
+        ];
+
+        for command in commands {
+            Command::new("riverctl")
+                .args(command)
+                .spawn()
+                .expect("Can't set colors with riverctl\n");
+        }
+
+        return self;
+    }
+
     /// Sets keybinds based on the vector of lists with 2 values
+    ///
+    /// Second command can be written with spaces, no need to define every argument separatly.
+    ///  
     /// Takes the ownership of the vector and modifies it to supply `riverctl`
     ///
     /// # Examples
@@ -182,27 +230,47 @@ impl Config {
 
     fn apply_keybind(&self, keybind: Keybind) {
         let command: Vec<&str> = keybind.command.split_whitespace().collect();
-        Command::new("riverctl")
-            .args([
-                "map",
-                "normal",
-                self.modifier.as_str(),
-                keybind.keymap.as_str(),
-                command[0],
-                command[1],
-            ])
-            .spawn()
-            .expect("Can't set the keybind");
+        match command.len() {
+            1 => {
+                Command::new("riverctl")
+                    .args([
+                        "map",
+                        "normal",
+                        self.modifier.as_str(),
+                        keybind.keymap.as_str(),
+                        command[0],
+                    ])
+                    .spawn()
+                    .expect("Can't set the keybind");
+            }
+            2 => {
+                Command::new("riverctl")
+                    .args([
+                        "map",
+                        "normal",
+                        self.modifier.as_str(),
+                        keybind.keymap.as_str(),
+                        command[0],
+                        command[1],
+                    ])
+                    .spawn()
+                    .expect("Can't set the keybind");
+            }
+            _ => {
+                panic!("There are no commands provided for the riverctl!\n")
+            }
+        }
     }
 
     /// Finish setting up the config.
     ///
     /// Needs to be run at the end of setup via chaining.
-    pub fn apply(&self) -> Result<()> {
+    pub fn apply(&mut self) -> Result<()> {
         for keybind in &self.keybinds {
             let keybind = keybind.clone();
             self.apply_keybind(keybind);
         }
+        self.apply_colors();
         return Ok(());
     }
 }
