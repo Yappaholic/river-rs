@@ -10,9 +10,9 @@ Well, why not? After all, why not build something unique and fun.
 
 On a more serious note, writing configuration for `RiverWM` in programming languages
 teaches a lot about language's basic operations, loops, typing, working with strings,
-creating compound objects and tooling. That's why I would recommend *you too* to try
+creating compound objects and tooling. That's why I would recommend _you too_ to try
 and build a simple library for configuring `RiverWM` in any language you want
-(`C`, `Zig`, `Haskell`, ~Java?~, *whatever!*).
+(`C`, `Zig`, `Haskell`, ~Java?~, _whatever!_).
 
 ## Current status
 
@@ -21,6 +21,8 @@ when you apply keybinds one by one, depending on wether you want to change the m
 and then apply config in the end.
 
 # TODO:
-- [] Write function to generate tag keybinds
-- [] Write autospawn function (You can use `spawn` function by now)
-- [] Make writing custom rules work
+
+- [x] Write function to generate tag keybinds
+- [x] Write autospawn function (You can use `spawn` function by now)
+- [ ] Fix setting xkb keyboard layout
+- [ ] Make writing custom rules work
