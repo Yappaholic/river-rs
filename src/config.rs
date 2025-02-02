@@ -3,7 +3,9 @@
 //! The heart of river-rs library
 use crate::colors::Colors;
 use crate::layout::Layout;
+use std::io::stdout;
 use std::io::Result;
+use std::io::Write;
 use std::process::Command;
 
 /// Struct for info of modifier, keymap and associated command.
@@ -28,70 +30,27 @@ pub struct Config {
     modifier: String,
 }
 
+// Util functions
 impl Config {
-    /// Creates empty config with no keybinds.
-    ///
-    /// The default modifier is `Super`.
-    /// To check the default colors visit Colors struct.
-    pub fn new() -> Config {
-        Config {
-            keybinds: vec![],
-            colors: Colors::default(),
-            layout: Layout::default(),
-            modifier: String::from("Super"),
+    /// Convenient function to simplify writing config from the end users perspective
+    fn serialize_to_owned(&self, arr: &Vec<[&str; 2]>) -> Vec<Vec<String>> {
+        let mut new_arr: Vec<Vec<String>> = Vec::new();
+
+        for keybind in arr {
+            new_arr.push(vec![String::from(keybind[0]), String::from(keybind[1])])
         }
+
+        return new_arr;
     }
 
-    /// Sets xkb settings related to repeat_rate and repeat_delay.
-    ///
-    /// The typematic delay indicates the amount of time (typically in milliseconds) a key needs to be pressed and held in order for the repeating process to begin.
-    /// After the repeating process has been triggered, the character will be repeated with a certain frequency (usually given in Hz) specified by the typematic rate.
-    ///`(Taken from the Arch Wiki)`
-    pub fn set_repeat(&self, repeat_rate: u32, repeat_delay: u32) -> &Self {
-        Command::new("riverctl")
-            .args([
-                "set-repeat",
-                repeat_rate.to_string().as_str(),
-                repeat_delay.to_string().as_str(),
-            ])
-            .spawn()
-            .expect("Can't set xkb settings");
-
-        return self;
+    pub fn print_keybindings(&self) {
+        let mut writer = stdout();
+        write!(writer, "{:?}", self.keybinds).unwrap();
     }
+}
 
-    /// Changes the River Modifier key.
-    ///
-    /// Useful when chaining `set_keybinds` with different modifiers.
-    ///
-    /// # Example
-    /// ```
-    /// use river_rs::config::Config;
-    ///
-    /// let mut config = Config::new();
-    ///
-    /// let keybinds = vec![
-    ///     ["C", "close"],
-    ///     ["J", "focus-view next"],
-    ///     ["K", "focus-view previous"],
-    /// ];
-    /// let shift_keybinds = vec![
-    ///     ["E", "exit"],
-    ///     ["J", "swap next"],
-    ///     ["K", "swap previous"],
-    /// ];
-    /// config
-    ///     .set_keybinds(keybinds)
-    ///     .change_super("Super+Shift")
-    ///     .set_keybinds(shift_keybinds)
-    ///     .apply()
-    ///     .unwrap();
-    /// ```
-    pub fn change_super(&mut self, key: &str) -> &mut Self {
-        self.modifier = String::from(key);
-        return self;
-    }
-
+// Keybinds
+impl Config {
     /// Sets the single keybind
     ///
     /// # Example
@@ -116,50 +75,6 @@ impl Config {
         self.keybinds.push(keybind);
         return self;
     }
-
-    /// Sets tags from 1 to 9 based on passed modifiers
-    pub fn set_tags(&mut self, modifier: &str, switch_modifier: &str) -> &mut Self {
-        let tags: Vec<u32> = (0..10).collect();
-        let tag_ids: Vec<u32> = tags.iter().map(|x| 2_u32.pow(*x)).collect();
-        let mut keybinds: Vec<Keybind> = Vec::new();
-        let mut idx = 0;
-        while idx < tags.len() {
-            keybinds.push(Keybind {
-                modifier: String::from(modifier),
-                keymap: tags[idx].to_string(),
-                command: String::from("set-focused-tags ") + tag_ids[idx].to_string().as_str(),
-            });
-            keybinds.push(Keybind {
-                modifier: String::from(switch_modifier),
-                keymap: tags[idx].to_string(),
-                command: String::from("set-view-tags ") + tag_ids[idx].to_string().as_str(),
-            });
-            idx += 1;
-        }
-        return self;
-    }
-
-    fn apply_colors(&mut self) -> &mut Self {
-        let background_color = format!("{:#X}", self.colors.background_color);
-        let border_color_focused = format!("{:#X}", self.colors.border_color_focused);
-        let border_color_unfocused = format!("{:#X}", self.colors.border_color_unfocused);
-
-        let commands = vec![
-            ["background-color", background_color.as_str()],
-            ["border-color-focused", border_color_focused.as_str()],
-            ["border-color-unfocused", border_color_unfocused.as_str()],
-        ];
-
-        for command in commands {
-            Command::new("riverctl")
-                .args(command)
-                .spawn()
-                .expect("Can't set colors with riverctl\n");
-        }
-
-        return self;
-    }
-
     /// Sets keybinds based on the vector of lists with 2 values
     ///
     /// Second command can be written with spaces, no need to define every argument separatly.
@@ -244,17 +159,6 @@ impl Config {
             .expect("Can't set the mouse keybind");
     }
 
-    /// Convenient function to simplify writing config from the end users perspective
-    fn serialize_to_owned(&self, arr: &Vec<[&str; 2]>) -> Vec<Vec<String>> {
-        let mut new_arr: Vec<Vec<String>> = Vec::new();
-
-        for keybind in arr {
-            new_arr.push(vec![String::from(keybind[0]), String::from(keybind[1])])
-        }
-
-        return new_arr;
-    }
-
     fn apply_keybind(&self, keybind: Keybind) {
         let command: Vec<&str> = keybind.command.split_whitespace().collect();
         match command.len() {
@@ -304,6 +208,118 @@ impl Config {
                     .expect("Can't set the keybind\n");
             }
         }
+    }
+}
+
+// Basics
+impl Config {
+    /// Creates empty config with no keybinds.
+    ///
+    /// The default modifier is `Super`.
+    /// To check the default colors visit Colors struct.
+    pub fn new() -> Config {
+        Config {
+            keybinds: vec![],
+            colors: Colors::default(),
+            layout: Layout::default(),
+            modifier: String::from("Super"),
+        }
+    }
+
+    /// Sets xkb settings related to repeat_rate and repeat_delay.
+    ///
+    /// The typematic delay indicates the amount of time (typically in milliseconds) a key needs to be pressed and held in order for the repeating process to begin.
+    /// After the repeating process has been triggered, the character will be repeated with a certain frequency (usually given in Hz) specified by the typematic rate.
+    ///`(Taken from the Arch Wiki)`
+    pub fn set_repeat(&self, repeat_rate: u32, repeat_delay: u32) -> &Self {
+        Command::new("riverctl")
+            .args([
+                "set-repeat",
+                repeat_rate.to_string().as_str(),
+                repeat_delay.to_string().as_str(),
+            ])
+            .spawn()
+            .expect("Can't set xkb settings");
+
+        return self;
+    }
+
+    /// Changes the River Modifier key.
+    ///
+    /// Useful when chaining `set_keybinds` with different modifiers.
+    ///
+    /// # Example
+    /// ```
+    /// use river_rs::config::Config;
+    ///
+    /// let mut config = Config::new();
+    ///
+    /// let keybinds = vec![
+    ///     ["C", "close"],
+    ///     ["J", "focus-view next"],
+    ///     ["K", "focus-view previous"],
+    /// ];
+    /// let shift_keybinds = vec![
+    ///     ["E", "exit"],
+    ///     ["J", "swap next"],
+    ///     ["K", "swap previous"],
+    /// ];
+    /// config
+    ///     .set_keybinds(keybinds)
+    ///     .change_super("Super+Shift")
+    ///     .set_keybinds(shift_keybinds)
+    ///     .apply()
+    ///     .unwrap();
+    /// ```
+    pub fn change_super(&mut self, key: &str) -> &mut Self {
+        self.modifier = String::from(key);
+        return self;
+    }
+
+    /// Sets tags from 1 to 9 based on passed modifiers
+    pub fn set_tags(&mut self, modifier: &str, switch_modifier: &str) -> &mut Self {
+        let tags: Vec<u32> = (1..10).collect();
+        let tag_ids: Vec<u32> = tags.iter().map(|x| 2_u32.pow(*x)).collect();
+        let mut keybinds: Vec<Keybind> = Vec::new();
+        let mut idx = 0;
+        while idx < tags.len() {
+            keybinds.push(Keybind {
+                modifier: String::from(modifier),
+                keymap: tags[idx].to_string(),
+                command: String::from("set-focused-tags ") + tag_ids[idx].to_string().as_str(),
+            });
+            keybinds.push(Keybind {
+                modifier: String::from(switch_modifier),
+                keymap: tags[idx].to_string(),
+                command: String::from("set-view-tags ") + tag_ids[idx].to_string().as_str(),
+            });
+            idx += 1;
+        }
+        for keybind in keybinds {
+            self.keybinds.push(keybind);
+        }
+        return self;
+    }
+
+    fn apply_colors(&mut self) -> &mut Self {
+        let background_color = format!("{:#X}", self.colors.background_color);
+        let border_color_focused = format!("{:#X}", self.colors.border_color_focused);
+        let border_color_unfocused = format!("{:#X}", self.colors.border_color_unfocused);
+
+        let commands = vec![
+            ["background-color", background_color.as_str()],
+            ["border-color-focused", border_color_focused.as_str()],
+            ["border-color-unfocused", border_color_unfocused.as_str()],
+        ];
+
+        for command in commands {
+            Command::new("riverctl")
+                .args(command)
+                .spawn()
+                .expect("Can't set colors with riverctl\n");
+        }
+
+        return self;
     }
 
     /// Finish setting up the config.
