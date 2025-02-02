@@ -278,19 +278,19 @@ impl Config {
 
     /// Sets tags from 1 to 9 based on passed modifiers
     pub fn set_tags(&mut self, modifier: &str, switch_modifier: &str) -> &mut Self {
-        let tags: Vec<u32> = (1..10).collect();
+        let tags: Vec<u32> = (0..9).collect();
         let tag_ids: Vec<u32> = tags.iter().map(|x| 2_u32.pow(*x)).collect();
         let mut keybinds: Vec<Keybind> = Vec::new();
         let mut idx = 0;
         while idx < tags.len() {
             keybinds.push(Keybind {
                 modifier: String::from(modifier),
-                keymap: tags[idx].to_string(),
+                keymap: (tags[idx] + 1).to_string(),
                 command: String::from("set-focused-tags ") + tag_ids[idx].to_string().as_str(),
             });
             keybinds.push(Keybind {
                 modifier: String::from(switch_modifier),
-                keymap: tags[idx].to_string(),
+                keymap: (tags[idx] + 1).to_string(),
                 command: String::from("set-view-tags ") + tag_ids[idx].to_string().as_str(),
             });
             idx += 1;
