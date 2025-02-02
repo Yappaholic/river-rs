@@ -17,7 +17,14 @@ pub struct Keybind {
     keymap: String,
     command: String,
 }
-
+/// Struct for setting xkb settings. After creating struct, apply settings with `Config.set_keyboard_layout`.
+pub struct KeyboardLayout<T> {
+    pub rules: Option<T>,
+    pub model: Option<T>,
+    pub variant: Option<T>,
+    pub options: Option<T>,
+    pub layout: Option<T>,
+}
 /// The heart of the River configuration, holding values for default and mouse-related keybinds, colors and modifier
 ///
 /// Each value can only be changed with methods, because it is Rust, baby!
@@ -231,7 +238,7 @@ impl Config {
     /// The typematic delay indicates the amount of time (typically in milliseconds) a key needs to be pressed and held in order for the repeating process to begin.
     /// After the repeating process has been triggered, the character will be repeated with a certain frequency (usually given in Hz) specified by the typematic rate.
     ///`(Taken from the Arch Wiki)`
-    pub fn set_repeat(&self, repeat_rate: u32, repeat_delay: u32) -> &Self {
+    pub fn set_repeat(&mut self, repeat_rate: u32, repeat_delay: u32) -> &mut Self {
         Command::new("riverctl")
             .args([
                 "set-repeat",
@@ -242,6 +249,39 @@ impl Config {
             .expect("Can't set xkb settings");
 
         return self;
+    }
+
+    /// Set xkb settings for window manager. To check available settings, look at `KeyboardLayout`
+    /// struct.
+    pub fn set_keyboard_layout(&mut self, layout: KeyboardLayout<&str>) -> &mut Self {
+        let rules = match layout.model {
+            Some(model) => model,
+            None => "",
+        };
+        let model = match layout.model {
+            Some(model) => model,
+            None => "",
+        };
+        let variant = match layout.variant {
+            Some(variant) => variant,
+            None => "",
+        };
+        let options = match layout.options {
+            Some(options) => options,
+            None => "",
+        };
+        let layout = match layout.options {
+            Some(layout) => layout,
+            None => panic!("Keyboard layout is not set"),
+        };
+        Command::new("riverctl")
+            .args([
+                "-rules", rules, "-model", model, "-variant", variant, "-options", options,
+                "-layout", layout,
+            ])
+            .spawn()
+            .expect("Can't set the keyboard layout!\n");
+        self
     }
 
     /// Changes the River Modifier key.
@@ -297,6 +337,28 @@ impl Config {
         }
         for keybind in keybinds {
             self.keybinds.push(keybind);
+        }
+        return self;
+    }
+
+    /// Set your autostart programs to spawn on launching River
+    /// # Example
+    /// ```
+    /// use crate::river_rs::config::Config;
+    /// let autostart = vec![
+    ///     "firefox",
+    ///     "kitty"
+    /// ];
+    ///
+    /// let mut config = Config::new();
+    /// config.autostart(autostart);
+    /// ```
+    pub fn autostart(&mut self, applications: Vec<&str>) -> &mut Self {
+        for app in applications {
+            Command::new("riverctl")
+                .args(["spawn", app])
+                .spawn()
+                .expect("Can't spawn autostart programs");
         }
         return self;
     }

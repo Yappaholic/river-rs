@@ -21,11 +21,20 @@ pub fn spawn(command: &str) {
 #[cfg(test)]
 mod test {
     use crate::config::Config;
+    use crate::config::KeyboardLayout;
     // Panics without RiverWM installed
     // Returns riverctl error when RiverWM installed
     #[test]
     fn create_config() {
         let mut config: Config = Config::new();
+        let autostart = vec!["waybar -c ~/.config/waybar/riverconfig"];
+        let layout: KeyboardLayout<&str> = KeyboardLayout {
+            rules: None,
+            model: None,
+            variant: None,
+            options: Some("grp:toggle, ctrl:nocaps"),
+            layout: Some("us,ru"),
+        };
         let keybinds = vec![
             ["Q", "spawn ghostty"],
             ["C", "close"],
@@ -40,7 +49,8 @@ mod test {
             .set_mouse_keybinds(Some("move-view"), Some("resize-view"), None)
             .change_super("Super+Shift")
             .set_keybinds(shift_keybinds)
-            .set_tags("Super", "Super+Shift");
+            .set_tags("Super", "Super+Shift")
+            .autostart(autostart);
         config.print_keybindings();
     }
 }
