@@ -64,7 +64,7 @@ impl Config {
     /// ```
     /// use river_rs::config::Config;
     ///
-    /// let mut config = Config::new();
+    /// let mut config = Config::default();
     /// let key = String::from("Q");
     /// let command = String::from("spanw foo");
     /// config.set_keybind(&key, &command);
@@ -89,7 +89,7 @@ impl Config {
     /// ```
     /// use river_rs::config::Config;
     ///
-    /// let mut config = Config::new();
+    /// let mut config = Config::default();
     /// let keybinds = vec![
     ///   ["Q", "spawn foo"],
     ///   ["E", "exit"],
@@ -113,7 +113,7 @@ impl Config {
     /// ```
     /// use river_rs::config::Config;
     ///
-    /// let mut config = Config::new();
+    /// let mut config = Config::default();
     /// config.set_mouse_keybinds(Some("move-view"), Some("resize-view"), None);
     /// ```
     ///
@@ -287,7 +287,7 @@ impl Config {
     /// ```
     /// use river_rs::config::Config;
     ///
-    /// let mut config = Config::new();
+    /// let mut config = Config::default();
     ///
     /// let keybinds = vec![
     ///     ["C", "close"],
@@ -345,7 +345,7 @@ impl Config {
     ///     "kitty"
     /// ];
     ///
-    /// let mut config = Config::new();
+    /// let mut config = Config::default();
     /// config.autostart(autostart);
     /// ```
     pub fn autostart(&mut self, applications: Vec<&str>) -> &mut Self {
