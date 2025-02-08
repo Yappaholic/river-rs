@@ -10,18 +10,18 @@ pub struct Layout {
     generator: String,
     arguments: String,
 }
-
-impl Layout {
-    pub fn default() -> Layout {
+impl Default for Layout {
+    fn default() -> Self {
         Layout {
             generator: String::from("rivertile"),
             arguments: String::from("-view-padding 6 -outer-padding 6"),
         }
     }
-
+}
+impl Layout {
     pub fn set_generator(&mut self, generator: &str) -> &mut Self {
         self.generator = String::from(generator);
-        return self;
+        self
     }
 
     /// Consider writing args in multiline strings
@@ -36,20 +36,24 @@ impl Layout {
     /// ```
     pub fn set_args(&mut self, args: &str) -> &mut Self {
         self.arguments = String::from(args);
-        return self;
+        self
     }
 
     pub fn spawn(&self) {
-        let args: Vec<&str> = self.arguments.trim().split_whitespace().collect();
+        let args: Vec<&str> = self.arguments.split_whitespace().collect();
 
         Command::new("riverctl")
             .args(["default-layout", self.generator.as_str()])
             .spawn()
-            .expect("Can't set default layout generator");
+            .expect("Can't set default layout generator")
+            .wait()
+            .unwrap();
 
         Command::new(self.generator.as_str())
             .args(args)
             .spawn()
-            .expect("Can't launch layout generator");
+            .expect("Can't launch layout generator")
+            .wait()
+            .unwrap();
     }
 }

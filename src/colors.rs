@@ -13,35 +13,35 @@ pub struct Colors {
     pub border_color_focused: u32,
     pub border_color_unfocused: u32,
 }
-
-impl Colors {
+impl Default for Colors {
     /// Set next values as default:
     ///
-    /// ```
+    /// ```no_run
     /// let background_color: u32 = 0x002b36;
     /// let border_color_focused: u32 = 0x93a1a1;
     /// let border_color_unfocused: u32 = 0x586e75;
     /// ```
-    pub fn default() -> Colors {
+    fn default() -> Self {
         Colors {
             background_color: 0x002b36,
             border_color_focused: 0x93a1a1,
             border_color_unfocused: 0x586e75,
         }
     }
-
+}
+impl Colors {
     pub fn set_background_color(&mut self, color: u32) -> &mut Self {
         self.background_color = color;
-        return self;
+        self
     }
 
     pub fn set_border_color_focused(&mut self, color: u32) -> &mut Self {
         self.border_color_focused = color;
-        return self;
+        self
     }
 
     pub fn set_border_color_unfocused(&mut self, color: u32) -> &mut Self {
         self.border_color_unfocused = color;
-        return self;
+        self
     }
 }

@@ -47,7 +47,7 @@ impl Config {
             new_arr.push(vec![String::from(keybind[0]), String::from(keybind[1])])
         }
 
-        return new_arr;
+        new_arr
     }
 
     pub fn print_keybindings(&self) {
@@ -69,18 +69,15 @@ impl Config {
     /// let command = String::from("spanw foo");
     /// config.set_keybind(&key, &command);
     /// ```
-    pub fn set_keybind(&mut self, keys: &String, command: &String) -> &mut Self {
-        let keys = keys.clone();
-        let command = command.clone();
-
+    pub fn set_keybind(&mut self, keys: &str, command: &str) -> &mut Self {
         let keybind = Keybind {
             modifier: self.modifier.clone(),
-            keymap: keys,
-            command,
+            keymap: String::from(keys),
+            command: String::from(command),
         };
 
         self.keybinds.push(keybind);
-        return self;
+        self
     }
     /// Sets keybinds based on the vector of lists with 2 values
     ///
@@ -107,7 +104,7 @@ impl Config {
             self.set_keybind(&keybind[0], &keybind[1]);
         }
 
-        return self;
+        self
     }
 
     /// Every keybind is optional, so you can just provide it with `None` keyword
@@ -135,25 +132,19 @@ impl Config {
         if let Some(middle_command) = middle {
             self.apply_mouse_keybind("middle", middle_command);
         }
-        return self;
+        self
     }
 
     fn apply_mouse_keybind(&self, position: &str, command: &str) {
-        let pos: &str;
-        match position {
-            "left" => {
-                pos = "BTN_LEFT";
-            }
-            "right" => {
-                pos = "BTN_RIGHT";
-            }
-            "middle" => {
-                pos = "BTN_MIDDLE";
-            }
-            _ => {
-                pos = "BTN_LEFT";
-            }
-        }
+        let pos: &str = match position {
+            "left" => "BTN_LEFT",
+
+            "right" => "BTN_RIGHT",
+
+            "middle" => "BTN_MIDDLE",
+
+            _ => "BTN_LEFT",
+        };
         Command::new("riverctl")
             .args([
                 "map-pointer",
@@ -163,7 +154,9 @@ impl Config {
                 command,
             ])
             .spawn()
-            .expect("Can't set the mouse keybind");
+            .expect("Can't set the mouse keybind")
+            .wait()
+            .unwrap();
     }
 
     fn apply_keybind(&self, keybind: Keybind) {
@@ -179,7 +172,9 @@ impl Config {
                         command[0],
                     ])
                     .spawn()
-                    .expect("Can't set the keybind\n");
+                    .expect("Can't set the keybind\n")
+                    .wait()
+                    .unwrap();
             }
             2 => {
                 let args = [
@@ -193,7 +188,9 @@ impl Config {
                 Command::new("riverctl")
                     .args(args)
                     .spawn()
-                    .expect("Can't set the keybind\n");
+                    .expect("Can't set the keybind\n")
+                    .wait()
+                    .unwrap();
             }
             0 => {
                 panic!("There are no commands provided for the riverctl!\n")
@@ -207,24 +204,25 @@ impl Config {
                 ]
                 .iter()
                 .chain(&command)
-                .map(|&x| x)
+                .copied()
                 .collect();
                 Command::new("riverctl")
                     .args(args)
                     .spawn()
-                    .expect("Can't set the keybind\n");
+                    .expect("Can't set the keybind\n")
+                    .wait()
+                    .unwrap();
             }
         }
     }
 }
 
-// Basics
-impl Config {
+impl Default for Config {
     /// Creates empty config with no keybinds.
     ///
     /// The default modifier is `Super`.
     /// To check the default colors visit Colors struct.
-    pub fn new() -> Config {
+    fn default() -> Self {
         Config {
             keybinds: vec![],
             colors: Colors::default(),
@@ -232,7 +230,10 @@ impl Config {
             modifier: String::from("Super"),
         }
     }
+}
 
+// Basics
+impl Config {
     /// Sets xkb settings related to repeat_rate and repeat_delay.
     ///
     /// The typematic delay indicates the amount of time (typically in milliseconds) a key needs to be pressed and held in order for the repeating process to begin.
@@ -246,41 +247,35 @@ impl Config {
                 repeat_delay.to_string().as_str(),
             ])
             .spawn()
-            .expect("Can't set xkb settings");
+            .expect("Can't set xkb settings")
+            .wait()
+            .unwrap();
 
-        return self;
+        self
     }
 
     /// Set xkb settings for window manager. To check available settings, look at `KeyboardLayout`
     /// struct.
     pub fn set_keyboard_layout(&mut self, layout: KeyboardLayout<&str>) -> &mut Self {
-        let rules = match layout.model {
-            Some(model) => model,
-            None => "",
-        };
-        let model = match layout.model {
-            Some(model) => model,
-            None => "",
-        };
-        let variant = match layout.variant {
-            Some(variant) => variant,
-            None => "",
-        };
-        let options = match layout.options {
-            Some(options) => options,
-            None => "",
-        };
+        let rules = layout.rules.unwrap_or("");
+        let model = layout.model.unwrap_or("");
+        let variant = layout.variant.unwrap_or("");
+        let options = layout.options.unwrap_or("");
+
         let layout = match layout.options {
             Some(layout) => layout,
             None => panic!("Keyboard layout is not set"),
         };
+
         Command::new("riverctl")
             .args([
                 "-rules", rules, "-model", model, "-variant", variant, "-options", options,
                 "-layout", layout,
             ])
             .spawn()
-            .expect("Can't set the keyboard layout!\n");
+            .expect("Can't set the keyboard layout!\n")
+            .wait()
+            .unwrap();
         self
     }
 
@@ -313,7 +308,7 @@ impl Config {
     /// ```
     pub fn change_super(&mut self, key: &str) -> &mut Self {
         self.modifier = String::from(key);
-        return self;
+        self
     }
 
     /// Sets tags from 1 to 9 based on passed modifiers
@@ -338,7 +333,7 @@ impl Config {
         for keybind in keybinds {
             self.keybinds.push(keybind);
         }
-        return self;
+        self
     }
 
     /// Set your autostart programs to spawn on launching River
@@ -358,9 +353,11 @@ impl Config {
             Command::new("riverctl")
                 .args(["spawn", app])
                 .spawn()
-                .expect("Can't spawn autostart programs");
+                .expect("Can't spawn autostart programs")
+                .wait()
+                .unwrap();
         }
-        return self;
+        self
     }
 
     fn apply_colors(&mut self) -> &mut Self {
@@ -378,10 +375,12 @@ impl Config {
             Command::new("riverctl")
                 .args(command)
                 .spawn()
-                .expect("Can't set colors with riverctl\n");
+                .expect("Can't set colors with riverctl\n")
+                .wait()
+                .unwrap();
         }
 
-        return self;
+        self
     }
 
     /// Finish setting up the config.
@@ -394,6 +393,6 @@ impl Config {
         }
         self.apply_colors();
         self.layout.spawn();
-        return Ok(());
+        Ok(())
     }
 }

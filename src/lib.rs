@@ -15,7 +15,7 @@ pub fn spawn(command: &str) {
     Command::new("riverctl")
         .args(["spawn", command])
         .spawn()
-        .expect("Can't launch program");
+        .expect("Can't launch program").wait().unwrap();
 }
 
 #[cfg(test)]
@@ -26,7 +26,7 @@ mod test {
     // Returns riverctl error when RiverWM installed
     #[test]
     fn create_config() {
-        let mut config: Config = Config::new();
+        let mut config: Config = Config::default();
         let autostart = vec!["waybar -c ~/.config/waybar/riverconfig"];
         let layout: KeyboardLayout<&str> = KeyboardLayout {
             rules: None,
@@ -50,6 +50,7 @@ mod test {
             .change_super("Super+Shift")
             .set_keybinds(shift_keybinds)
             .set_tags("Super", "Super+Shift")
+            .set_keyboard_layout(layout)
             .autostart(autostart);
         config.print_keybindings();
     }
