@@ -254,6 +254,10 @@ impl Config {
         self
     }
 
+    pub fn set_layout_generator(&mut self, layout: Layout) -> &mut Self {
+        self.layout = layout;
+        self
+    }
     /// Set xkb settings for window manager. To check available settings, look at `KeyboardLayout`
     /// struct.
     pub fn set_keyboard_layout(&mut self, layout: KeyboardLayout<&str>) -> &mut Self {
@@ -269,8 +273,17 @@ impl Config {
 
         Command::new("riverctl")
             .args([
-                "-rules", rules, "-model", model, "-variant", variant, "-options", options,
-                "-layout", layout,
+                "keyboard-layout",
+                "-rules",
+                rules,
+                "-model",
+                model,
+                "-variant",
+                variant,
+                "-options",
+                options,
+                "-layout",
+                layout,
             ])
             .spawn()
             .expect("Can't set the keyboard layout!\n")
@@ -391,7 +404,6 @@ impl Config {
             let keybind = keybind.clone();
             self.apply_keybind(keybind);
         }
-        self.apply_colors();
         self.layout.spawn();
         Ok(())
     }

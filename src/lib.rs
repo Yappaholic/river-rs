@@ -15,7 +15,9 @@ pub fn spawn(command: &str) {
     Command::new("riverctl")
         .args(["spawn", command])
         .spawn()
-        .expect("Can't launch program").wait().unwrap();
+        .expect("Can't launch program")
+        .wait()
+        .unwrap();
 }
 
 #[cfg(test)]
@@ -31,8 +33,8 @@ mod test {
         let layout: KeyboardLayout<&str> = KeyboardLayout {
             rules: None,
             model: None,
-            variant: None,
-            options: Some("grp:toggle, ctrl:nocaps"),
+            variant: Some("colemak_dh_wide_iso,"),
+            options: Some("grp:toggle,ctrl:nocaps"),
             layout: Some("us,ru"),
         };
         let keybinds = vec![
