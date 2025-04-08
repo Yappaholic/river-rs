@@ -7,8 +7,8 @@ use std::process::Command;
 
 #[derive(Debug)]
 pub struct Layout {
-    generator: String,
-    arguments: String,
+    pub generator: String,
+    pub arguments: String,
 }
 impl Default for Layout {
     fn default() -> Self {

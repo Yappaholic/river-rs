@@ -79,11 +79,35 @@ impl Config {
         self.keybinds.push(keybind);
         self
     }
+
+    /// Set keybinds for layout generators
+    /// Use after specifying layout generator with `set_layout_generator`
+    pub fn set_layout_keybinds(&mut self, keybinds: Vec<[&str; 2]>) -> &mut Self {
+        for keybind in keybinds {
+            Command::new("riverctl")
+                .args([
+                    "map",
+                    "normal",
+                    self.modifier.as_str(),
+                    keybind[0],
+                    "send-layout-cmd",
+                    self.layout.generator.as_str(),
+                    keybind[1],
+                ])
+                .spawn()
+                .expect("Can't set the keybind\n")
+                .wait()
+                .unwrap();
+        }
+        self
+    }
     /// Sets keybinds based on the vector of lists with 2 values
     ///
     /// Second command can be written with spaces, no need to define every argument separatly.
     ///  
     /// Takes the ownership of the vector and modifies it to supply `riverctl`
+    ///
+    /// To set layout generator keymaps use `set_layout_keybinds`
     ///
     /// # Examples
     /// ```
