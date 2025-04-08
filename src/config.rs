@@ -282,7 +282,6 @@ impl Config {
                 variant,
                 "-options",
                 options,
-                "-layout",
                 layout,
             ])
             .spawn()
