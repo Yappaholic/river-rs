@@ -266,7 +266,7 @@ impl Config {
         let variant = layout.variant.unwrap_or("");
         let options = layout.options.unwrap_or("");
 
-        let layout = match layout.options {
+        let layout = match layout.layout {
             Some(layout) => layout,
             None => panic!("Keyboard layout is not set"),
         };
