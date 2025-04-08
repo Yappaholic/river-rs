@@ -160,60 +160,21 @@ impl Config {
     }
 
     fn apply_keybind(&self, keybind: Keybind) {
-        let command: Vec<&str> = keybind.command.split_whitespace().collect();
-        match command.len() {
-            1 => {
-                Command::new("riverctl")
-                    .args([
-                        "map",
-                        "normal",
-                        keybind.modifier.as_str(),
-                        keybind.keymap.as_str(),
-                        command[0],
-                    ])
-                    .spawn()
-                    .expect("Can't set the keybind\n")
-                    .wait()
-                    .unwrap();
-            }
-            2 => {
-                let args = [
-                    "map",
-                    "normal",
-                    keybind.modifier.as_str(),
-                    keybind.keymap.as_str(),
-                    command[0],
-                    command[1],
-                ];
-                Command::new("riverctl")
-                    .args(args)
-                    .spawn()
-                    .expect("Can't set the keybind\n")
-                    .wait()
-                    .unwrap();
-            }
-            0 => {
-                panic!("There are no commands provided for the riverctl!\n")
-            }
-            _ => {
-                let args: Vec<&str> = [
-                    "map",
-                    "normal",
-                    keybind.modifier.as_str(),
-                    keybind.keymap.as_str(),
-                ]
-                .iter()
-                .chain(&command)
-                .copied()
-                .collect();
-                Command::new("riverctl")
-                    .args(args)
-                    .spawn()
-                    .expect("Can't set the keybind\n")
-                    .wait()
-                    .unwrap();
-            }
-        }
+        let mut args: Vec<&str> = vec![
+            "map",
+            "normal",
+            keybind.modifier.as_str(),
+            keybind.keymap.as_str(),
+        ];
+        let mut command: Vec<&str> = keybind.command.split_whitespace().collect();
+        args.append(&mut command);
+
+        Command::new("riverctl")
+            .args(args)
+            .spawn()
+            .expect("Can't set the keybind\n")
+            .wait()
+            .unwrap();
     }
 }
 
