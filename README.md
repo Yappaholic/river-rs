@@ -24,5 +24,6 @@ and then apply config in the end.
 
 - [x] Write function to generate tag keybinds
 - [x] Write autospawn function (You can use `spawn` function by now)
-- [ ] Fix setting xkb keyboard layout
+- [x] Fix setting xkb keyboard layout
+- [ ] Write support for complex spawn arguments
 - [ ] Make writing custom rules work
